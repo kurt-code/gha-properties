@@ -3,7 +3,6 @@
 [![GitHub Super-Linter](https://github.com/kurt-code/gha-properties/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
 ![CI](https://github.com/kurt-code/gha-properties/actions/workflows/ci.yml/badge.svg)
 [![Check dist/](https://github.com/kurt-code/gha-properties/actions/workflows/check-dist.yml/badge.svg)](https://github.com/kurt-code/gha-properties/actions/workflows/check-dist.yml)
-[![CodeQL](https://github.com/kurt-code/gha-properties/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/kurt-code/gha-properties/actions/workflows/codeql-analysis.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
 The Properties File Action allows you to perform read and write operations on properties files
