@@ -43,4 +43,4 @@ jobs:
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_JAVASCRIPT_STANDARD: false
           VALIDATE_JSCPD: false
-          GITHUB_ACTIONS_CONFIG_FILE: ./.actionlintrc.yml
+          GITHUB_ACTIONS_CONFIG_FILE: actionlint.yml
