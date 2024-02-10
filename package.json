@@ -1,16 +1,16 @@
 {
-  "name": "typescript-action",
+  "name": "gha-properties",
   "description": "GitHub Actions TypeScript template",
   "version": "0.0.0",
-  "author": "",
+  "author": "kurt-code",
   "private": true,
-  "homepage": "https://github.com/actions/typescript-action",
+  "homepage": "https://github.com/kurt-code/gha-properties",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/kurt-code/gha-properties.git"
   },
   "bugs": {
-    "url": "https://github.com/actions/typescript-action/issues"
+    "url": "https://github.com/kurt-code/gha-properties/issues"
   },
   "keywords": [
     "actions",
