@@ -63,6 +63,7 @@ jobs:
         id: test-read
         uses: ./
         with:
+          file-path: test.properties
           operation: read
           keys: "key1,key2"
 
