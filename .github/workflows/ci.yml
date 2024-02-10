@@ -51,12 +51,23 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
 
-      - name: Test Local Action
-        id: test-action
+      - name: Test Local Write Action
+        id: test-write
         uses: ./
         with:
-          milliseconds: 2000
+          operation: write
+          file-path: test.properties
+          key-value-pairs: '{"key1": "value1", "key2": "value2"}'
+
+      - name: Test Local Read Action
+        id: test-read
+        uses: ./
+        with:
+          operation: read
+          keys: "key1,key2"
 
       - name: Print Output
         id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
+        run: |
+            echo "key1: ${{ steps.test-read.outputs.key1 }}"
+            echo "key2: ${{ steps.test-read.outputs.key2 }}"

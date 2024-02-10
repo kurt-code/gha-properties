@@ -20,7 +20,7 @@ To use this action to , add the following step to your GitHub workflow:
   uses: kurt-code/gha-properties@v0.0.1
   id: read-properties
   with:
-    mode: 'read'
+    operation: 'read'
     file-path: 'path/to/properties/file'
     keys: 'key1,key2'
 - name: Get the Read properties
@@ -35,7 +35,7 @@ To use this action to , add the following step to your GitHub workflow:
   uses: kurt-code/gha-properties@v0.0.1
   id: read-properties
   with:
-    mode: 'write'
+    operation: 'write'
     file-path: 'path/to/properties/file'
     key-value-pairs: '{"key1": "value1", "key2": "value2"}'
  ```
