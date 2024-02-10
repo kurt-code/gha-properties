@@ -2763,7 +2763,7 @@ async function run() {
         const ms = core.getInput('milliseconds');
         // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
         core.debug(`Waiting ${ms} milliseconds ...`);
-        // Log the current timestamp, wait, then log the new timestamp
+        // Log the current timestamp, properties, then log the new timestamp
         core.debug(new Date().toTimeString());
         await (0, wait_1.wait)(parseInt(ms, 10));
         core.debug(new Date().toTimeString());
@@ -2790,8 +2790,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.wait = void 0;
 /**
  * Wait for a number of milliseconds.
- * @param milliseconds The number of milliseconds to wait.
- * @returns {Promise<string>} Resolves with 'done!' after the wait is over.
+ * @param milliseconds The number of milliseconds to properties.
+ * @returns {Promise<string>} Resolves with 'done!' after the properties is over.
  */
 async function wait(milliseconds) {
     return new Promise(resolve => {

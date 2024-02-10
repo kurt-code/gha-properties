@@ -1,23 +1,26 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Properties File Action'
+description: 'Perform read and write operations on properties files.'
+author: 'kurt-code'
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: 'heart'
-  color: 'red'
+  icon: 'file-text'
+  color: 'yellow'
 
-# Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  file-path:
+    description: 'The path to the properties file.'
     required: true
-    default: '1000'
-
-# Define your outputs here.
-outputs:
-  time:
-    description: 'Your output description here'
+  keys:
+    description: 'Comma-separated list of keys to read or write.'
+    required: false
+  read-only:
+    description: 'Set to "true" if only reading properties, "false" if writing.'
+    required: true
+    default: 'true'
+  key-value-pairs:
+    description: 'Comma-separated list of key-value pairs to write.'
+    required: false
 
 runs:
   using: node20

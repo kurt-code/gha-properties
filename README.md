@@ -66,7 +66,7 @@ need to perform some initial setup steps before you can develop your action.
 
    PASS  ./index.test.js
      ✓ throws invalid number (3ms)
-     ✓ wait 500 ms (504ms)
+     ✓ properties 500 ms (504ms)
      ✓ test runs (95ms)
 
    ...
