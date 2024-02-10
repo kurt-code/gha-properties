@@ -1,89 +1,124 @@
-/**
- * Unit tests for the action's main functionality, src/main.ts
- *
- * These should be run as if the action was called from a workflow.
- * Specifically, the inputs listed in `action.yml` should be set as environment
- * variables following the pattern `INPUT_<INPUT_NAME>`.
- */
-
+import * as fs from 'fs'
+import { run } from '../src/main'
 import * as core from '@actions/core'
-import * as main from '../src/main'
 
-// Mock the action's main function
-const runMock = jest.spyOn(main, 'run')
+const filePath = 'test.properties'
+const keys = 'key1,key2,key3'
+const operation = 'read'
+const keyValuePairs = '{"key4": "value4", "key2": "value2-new"}'
 
-// Other utilities
-const timeRegex = /^\d{2}:\d{2}:\d{2}/
+jest.mock('fs', () => ({
+  promises: {
+    readFile: jest.fn(),
+    writeFile: jest.fn()
+  }
+}))
 
-// Mock the GitHub Actions core library
-let debugMock: jest.SpyInstance
-let errorMock: jest.SpyInstance
-let getInputMock: jest.SpyInstance
-let setFailedMock: jest.SpyInstance
-let setOutputMock: jest.SpyInstance
-
-describe('action', () => {
+describe('main.ts', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    jest.resetAllMocks()
 
-    debugMock = jest.spyOn(core, 'debug').mockImplementation()
-    errorMock = jest.spyOn(core, 'error').mockImplementation()
-    getInputMock = jest.spyOn(core, 'getInput').mockImplementation()
-    setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
-    setOutputMock = jest.spyOn(core, 'setOutput').mockImplementation()
+    jest.spyOn(core, 'getInput').mockImplementation(name => {
+      if (name === 'file-path') return filePath
+      if (name === 'keys') return keys
+      if (name === 'operation') return operation
+      if (name === 'key-value-pairs') return keyValuePairs
+      return ''
+    })
+    jest.spyOn(core, 'setOutput').mockImplementation(jest.fn())
+    jest.spyOn(core, 'setFailed').mockImplementation(jest.fn())
+    jest.spyOn(core, 'debug').mockImplementation(jest.fn())
+  })
+  afterEach(() => {
+    jest.restoreAllMocks()
   })
 
-  it('sets the time output', async () => {
-    // Set the action's inputs as return values from core.getInput()
-    getInputMock.mockImplementation((name: string): string => {
-      switch (name) {
-        case 'milliseconds':
-          return '500'
-        default:
-          return ''
-      }
+  describe('read operation', () => {
+    it('should read properties from file and set outputs', async () => {
+      jest
+        .spyOn(fs.promises, 'readFile')
+        .mockResolvedValue('key1=value1\nkey2=value2\nkey3=value3')
+      await run()
+      expect(fs.promises.readFile).toHaveBeenCalledWith(
+        'test.properties',
+        'utf8'
+      )
     })
 
-    await main.run()
-    expect(runMock).toHaveReturned()
-
-    // Verify that all of the core library functions were called correctly
-    expect(debugMock).toHaveBeenNthCalledWith(1, 'Waiting 500 milliseconds ...')
-    expect(debugMock).toHaveBeenNthCalledWith(
-      2,
-      expect.stringMatching(timeRegex)
-    )
-    expect(debugMock).toHaveBeenNthCalledWith(
-      3,
-      expect.stringMatching(timeRegex)
-    )
-    expect(setOutputMock).toHaveBeenNthCalledWith(
-      1,
-      'time',
-      expect.stringMatching(timeRegex)
-    )
-    expect(errorMock).not.toHaveBeenCalled()
+    it('should handle file read error', async () => {
+      const error = new Error('File read error')
+      jest.spyOn(fs.promises, 'readFile').mockRejectedValue(error)
+      await run()
+      expect(fs.promises.readFile).toHaveBeenCalledWith(
+        'test.properties',
+        'utf8'
+      )
+      expect(core.setFailed).toHaveBeenCalledWith(error.message)
+    })
   })
 
-  it('sets a failed status', async () => {
-    // Set the action's inputs as return values from core.getInput()
-    getInputMock.mockImplementation((name: string): string => {
-      switch (name) {
-        case 'milliseconds':
-          return 'this is not a number'
-        default:
-          return ''
-      }
+  describe('write operation', () => {
+    it('should write properties to file', async () => {
+      // jest.spyOn(fs.promises, 'readFile').mockResolvedValue('');
+      jest.spyOn(core, 'getInput').mockImplementation(name => {
+        if (name === 'file-path') return filePath
+        if (name === 'keys') return keys
+        if (name === 'operation') return 'write'
+        if (name === 'key-value-pairs') return keyValuePairs
+        return ''
+      })
+      await run()
+      expect(fs.promises.readFile).toHaveBeenCalledWith(
+        'test.properties',
+        'utf8'
+      )
+      expect(fs.promises.writeFile).toHaveBeenCalled()
     })
 
-    await main.run()
-    expect(runMock).toHaveReturned()
+    it('should handle file write error', async () => {
+      jest.spyOn(core, 'getInput').mockImplementation(name => {
+        if (name === 'file-path') return filePath
+        if (name === 'keys') return keys
+        if (name === 'operation') return 'write'
+        if (name === 'key-value-pairs') return keyValuePairs
+        return ''
+      })
+      const error = new Error('File write error')
+      jest.spyOn(fs.promises, 'readFile').mockResolvedValue('')
+      jest.spyOn(fs.promises, 'writeFile').mockRejectedValue(error)
+      await run()
+      expect(fs.promises.readFile).toHaveBeenCalledWith(
+        'test.properties',
+        'utf8'
+      )
+      expect(fs.promises.writeFile).toHaveBeenCalled()
+      expect(core.setFailed).toHaveBeenCalledWith(error.message)
+    })
+  })
 
-    // Verify that all of the core library functions were called correctly
-    expect(setFailedMock).toHaveBeenNthCalledWith(
-      1,
-      'milliseconds not a number'
-    )
-    expect(errorMock).not.toHaveBeenCalled()
+  describe('should handle invalid operation', () => {
+    it('should exit with error for invalid operation', async () => {
+      // spyON getInput() to return an invalid operation
+      jest.spyOn(core, 'getInput').mockImplementationOnce(() => {
+        // eslint-disable-next-line no-throw-literal
+        throw {}
+      })
+      await run()
+      expect(core.setFailed).toHaveBeenCalledWith(`Unknown error`)
+    })
+  })
+
+  describe('should handle unknown error', () => {
+    it('should exit with error for invalid operation', async () => {
+      jest.spyOn(core, 'getInput').mockImplementation(name => {
+        if (name === 'file-path') return filePath
+        if (name === 'keys') return keys
+        if (name === 'operation') return 'unknown'
+        if (name === 'key-value-pairs') return keyValuePairs
+        return ''
+      })
+      await run()
+      expect(core.setFailed).toHaveBeenCalledWith(`Invalid operation: unknown`)
+    })
   })
 })

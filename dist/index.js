@@ -2751,29 +2751,52 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
+exports.run = exports.getInputs = void 0;
 const core = __importStar(__nccwpck_require__(186));
-const wait_1 = __nccwpck_require__(259);
+const properties_1 = __nccwpck_require__(434);
+function getInputs() {
+    return {
+        filePath: core.getInput('file-path', { required: true }),
+        keys: core.getInput('keys', { required: false }),
+        operation: core.getInput('operation', { required: true }),
+        keyValuePairs: core.getInput('key-value-pairs', { required: false })
+    };
+}
+exports.getInputs = getInputs;
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
     try {
-        const ms = core.getInput('milliseconds');
-        // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-        core.debug(`Waiting ${ms} milliseconds ...`);
-        // Log the current timestamp, properties, then log the new timestamp
-        core.debug(new Date().toTimeString());
-        await (0, wait_1.wait)(parseInt(ms, 10));
-        core.debug(new Date().toTimeString());
-        // Set outputs for other workflow steps to use
-        core.setOutput('time', new Date().toTimeString());
+        const { filePath, keys, operation, keyValuePairs } = getInputs();
+        if (operation === 'read') {
+            const requiredKeys = keys.split(',').map(key => key.trim());
+            const properties = await (0, properties_1.getPropertiesForKeys)(filePath, requiredKeys);
+            // Output each key-value pair
+            if (properties) {
+                for (const [key, value] of Object.entries(properties)) {
+                    core.setOutput(key, value);
+                }
+            }
+        }
+        else if (operation === 'write') {
+            const values = JSON.parse(keyValuePairs);
+            await (0, properties_1.writePropertiesToFile)(filePath, values);
+            core.debug('Properties written successfully.');
+        }
+        else {
+            throw new Error(`Invalid operation: ${operation}`);
+        }
     }
     catch (error) {
         // Fail the workflow run if an error occurs
-        if (error instanceof Error)
+        if (error instanceof Error) {
             core.setFailed(error.message);
+        }
+        else {
+            core.setFailed('Unknown error');
+        }
     }
 }
 exports.run = run;
@@ -2781,27 +2804,71 @@ exports.run = run;
 
 /***/ }),
 
-/***/ 259:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ 434:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.wait = void 0;
-/**
- * Wait for a number of milliseconds.
- * @param milliseconds The number of milliseconds to properties.
- * @returns {Promise<string>} Resolves with 'done!' after the properties is over.
- */
-async function wait(milliseconds) {
-    return new Promise(resolve => {
-        if (isNaN(milliseconds)) {
-            throw new Error('milliseconds not a number');
+exports.writePropertiesToFile = exports.writePropertyToFile = exports.getPropertiesForKeys = exports.readPropertiesFile = void 0;
+const fs_1 = __nccwpck_require__(147);
+async function readPropertiesFile(filePath) {
+    const data = (await fs_1.promises.readFile(filePath, 'utf8')) ?? '';
+    const lines = data.split('\n');
+    const properties = {};
+    for (const line of lines) {
+        if (line.trim() !== '' && !line.startsWith('#')) {
+            const firstEqualsIndex = line.indexOf('=');
+            if (firstEqualsIndex !== -1) {
+                // Check if '=' exists in the line
+                const key = line.substring(0, firstEqualsIndex).trim();
+                const value = line.substring(firstEqualsIndex + 1).trim();
+                properties[key] = value;
+            }
         }
-        setTimeout(() => resolve('done!'), milliseconds);
-    });
+    }
+    return properties;
 }
-exports.wait = wait;
+exports.readPropertiesFile = readPropertiesFile;
+async function getPropertiesForKeys(filePath, keys) {
+    const allProperties = await readPropertiesFile(filePath);
+    const filteredProperties = {};
+    for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(allProperties, key)) {
+            filteredProperties[key] = allProperties[key];
+        }
+    }
+    return filteredProperties;
+}
+exports.getPropertiesForKeys = getPropertiesForKeys;
+async function writePropertyToFile(filePath, key, value) {
+    const properties = await readPropertiesFile(filePath);
+    properties[key] = value;
+    let newFileContent = '';
+    for (const prop in properties) {
+        if (Object.prototype.hasOwnProperty.call(properties, prop)) {
+            newFileContent += `${prop}=${properties[prop]}\n`;
+        }
+    }
+    await fs_1.promises.writeFile(filePath, newFileContent);
+}
+exports.writePropertyToFile = writePropertyToFile;
+async function writePropertiesToFile(filePath, keyValuePairs) {
+    const existingProperties = await readPropertiesFile(filePath);
+    for (const key in keyValuePairs) {
+        if (Object.prototype.hasOwnProperty.call(keyValuePairs, key)) {
+            existingProperties[key] = keyValuePairs[key];
+        }
+    }
+    let newFileContent = '';
+    for (const prop in existingProperties) {
+        if (Object.prototype.hasOwnProperty.call(existingProperties, prop)) {
+            newFileContent += `${prop}=${existingProperties[prop]}\n`;
+        }
+    }
+    await fs_1.promises.writeFile(filePath, newFileContent);
+}
+exports.writePropertiesToFile = writePropertiesToFile;
 
 
 /***/ }),

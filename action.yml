@@ -14,12 +14,12 @@ inputs:
   keys:
     description: 'Comma-separated list of keys to read or write.'
     required: false
-  read-only:
-    description: 'Set to "true" if only reading properties, "false" if writing.'
+  operation:
+    description: 'determines the operation to perform. Can be either read or write.'
     required: true
-    default: 'true'
+    default: 'read'
   key-value-pairs:
-    description: 'Comma-separated list of key-value pairs to write.'
+    description: 'JSON key value pairs to write to file. e.g. {"key1": "val1", "key2": "val2"}'
     required: false
 
 runs:
