@@ -70,10 +70,4 @@ jobs:
         with:
           file-path: test.properties
           operation: read
-          keys: "key1,key2"
-
-      - name: Print Output
-        id: output
-        run: |
-            echo "key1: ${{ steps.test-read.outputs.key1 }}"
-            echo "key2: ${{ steps.test-read.outputs.key2 }}"
+          keys: "key1,key2" # will output key1 and key2 values if found steps.test-read.outputs.***

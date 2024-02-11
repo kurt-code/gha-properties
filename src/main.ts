@@ -29,7 +29,11 @@ export async function run(): Promise<void> {
       // Output each key-value pair
       if (properties) {
         for (const [key, value] of Object.entries(properties)) {
-          core.setOutput(key, value)
+          const cleanedKey = key.replace(/[^a-zA-Z]/g, '_')
+          core.info(
+            `Setting output for key: ${cleanedKey} with value:  ${value}`
+          )
+          core.setOutput(cleanedKey, value)
         }
       }
     } else if (operation === 'write') {
